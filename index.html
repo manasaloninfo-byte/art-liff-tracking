@@ -1,60 +1,60 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <title>ART and ASSET Tracking</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-</head>
-<body>
-  <p>読み込み中です…少々お待ちください。</p>
+<script>
+const LIFF_ID = '2009197031-WI4KvEqT';
+// Make にはまだ送らないテスト用
+const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/xxxxxxxxxxxxxxxxxxxxxxxx'; 
 
-  <script>
-    // ★設定（あなた専用）
-    const LIFF_ID = '2009197031-WI4KvEqT';
-    const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/rz9spqo3wja7f4rimw4sqxq53liqguky';
+async function main() {
+  try {
+    // 1. LIFF 初期化
+    await liff.init({ liffId: LIFF_ID });
 
-    function getSerialFromQuery() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('sid') || '';
+    // 2. LINEの外（ブラウザ）から来た場合はログインさせる
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
     }
 
-    async function main() {
-      await liff.init({ liffId: LIFF_ID });
+    // 3. プロフィール取得して表示
+    const profile = await liff.getProfile();
+    const urlParams = new URLSearchParams(window.location.search);
+    const sid = urlParams.get('sid');
 
-      // LINEアプリ外ならLINEログインへ飛ばす
-      if (!liff.isInClient()) {
-        liff.login();
-        return;
-      }
+    alert(
+      'LIFFテストOK\n\n' +
+      'displayName: ' + profile.displayName + '\n' +
+      'userId(先頭10文字): ' + profile.userId.substring(0, 10) + '...\n' +
+      'sid: ' + sid
+    );
 
-      const profile = await liff.getProfile();
-      const userId = profile.userId;
-      const displayName = profile.displayName;
-      const serial = getSerialFromQuery();
-      const now = new Date().toISOString();
+    // ここまで来れば LIFF は正常。
+    // この先（Make への送信）は一旦コメントアウトしておく。
 
-      await fetch(MAKE_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          displayName,
-          serial,
-          createdAt: now
-        })
-      });
-
-      alert('登録が完了しました。ありがとうございます！');
-      liff.closeWindow();
-    }
-
-    main().catch(err => {
-      console.error(err);
-      alert('エラーが発生しました。時間をおいて再度お試しください。');
+    /*
+    const res = await fetch(MAKE_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        displayName: profile.displayName,
+        userId: profile.userId,
+        serial: sid,
+      }),
     });
-  </script>
-</body>
-</html>
+
+    if (!res.ok) {
+      throw new Error('Webhook Error: ' + res.status);
+    }
+
+    alert('Makeへの送信も成功しました');
+    */
+
+  } catch (e) {
+    alert('エラー内容: ' + (e.message || e));
+  }
+}
+
+main();
+</script>
+
 
 
 
