@@ -1,60 +1,72 @@
-<script>
-const LIFF_ID = '2009197031-WI4KvEqT';
-// Make にはまだ送らないテスト用
-const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/xxxxxxxxxxxxxxxxxxxxxxxx'; 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>SPHERE CLUB 登録テスト</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- ★ここで LIFF の SDK を読み込む -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body style="background:#eee;">
+  <p style="font-size:14px;padding:8px;">
+    読み込み中です…少々お待ちください。
+  </p>
 
-async function main() {
-  try {
-    // 1. LIFF 初期化
-    await liff.init({ liffId: LIFF_ID });
+  <!-- ★この下で liff を使う（順番が重要） -->
+  <script>
+    const LIFF_ID = '2009197031-WI4KvEqT';
+    // 今はダミー：あとで本物に変える
+    const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/xxxxxxxxxxxxxxxxxxxxxxxx';
 
-    // 2. LINEの外（ブラウザ）から来た場合はログインさせる
-    if (!liff.isLoggedIn()) {
-      liff.login();
-      return;
+    async function main() {
+      try {
+        // 1. LIFF 初期化
+        await liff.init({ liffId: LIFF_ID });
+
+        // 2. 未ログインならログインへ
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        // 3. プロフィール & sid を取得してテスト表示
+        const profile = await liff.getProfile();
+        const params = new URLSearchParams(window.location.search);
+        const sid = params.get('sid');
+
+        alert(
+          'LIFFテストOK\\n\\n' +
+          'displayName: ' + profile.displayName + '\\n' +
+          'userId(先頭10文字): ' + profile.userId.substring(0, 10) + '...\\n' +
+          'sid: ' + sid
+        );
+
+        // ↓↓↓ ここから下は一旦コメントアウト（Make連携はまだ） ↓↓↓
+        /*
+        const res = await fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            displayName: profile.displayName,
+            userId: profile.userId,
+            serial: sid,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Webhook Error: ' + res.status);
+        }
+
+        alert('Makeへの送信も成功しました');
+        */
+        // ↑↑↑ ここまでコメントアウト ↑↑↑
+
+      } catch (e) {
+        alert('エラー内容: ' + (e.message || e));
+      }
     }
 
-    // 3. プロフィール取得して表示
-    const profile = await liff.getProfile();
-    const urlParams = new URLSearchParams(window.location.search);
-    const sid = urlParams.get('sid');
-
-    alert(
-      'LIFFテストOK\n\n' +
-      'displayName: ' + profile.displayName + '\n' +
-      'userId(先頭10文字): ' + profile.userId.substring(0, 10) + '...\n' +
-      'sid: ' + sid
-    );
-
-    // ここまで来れば LIFF は正常。
-    // この先（Make への送信）は一旦コメントアウトしておく。
-
-    /*
-    const res = await fetch(MAKE_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        displayName: profile.displayName,
-        userId: profile.userId,
-        serial: sid,
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error('Webhook Error: ' + res.status);
-    }
-
-    alert('Makeへの送信も成功しました');
-    */
-
-  } catch (e) {
-    alert('エラー内容: ' + (e.message || e));
-  }
-}
-
-main();
-</script>
-
-
-
-
+    main();
+  </script>
+</body>
+</html>
